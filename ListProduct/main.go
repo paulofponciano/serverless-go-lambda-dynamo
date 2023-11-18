@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"strconv"
 
@@ -17,7 +18,7 @@ type Product struct {
 	Price int    `json:"price"`
 }
 
-func ListProduct(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func ListProduct(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	sess := session.Must(session.NewSession())
 	svc := dynamodb.New(sess)
 

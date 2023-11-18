@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"strconv"
 
@@ -18,7 +19,7 @@ type Product struct {
 	Price int    `json:"price"`
 }
 
-func InsertProduct(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func InsertProduct(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	var product Product
 	err := json.Unmarshal([]byte(request.Body), &product)
 	if err != nil {
