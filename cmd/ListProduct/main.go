@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"strconv"
+
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-lambda-go/lambda"
 )
 
 type Product struct {
@@ -16,7 +17,7 @@ type Product struct {
 	Price int    `json:"price"`
 }
 
-func ListProduct(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {	
+func ListProduct(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	sess := session.Must(session.NewSession())
 	svc := dynamodb.New(sess)
 
@@ -26,37 +27,37 @@ func ListProduct(request events.APIGatewayProxyRequest) (events.APIGatewayProxyR
 
 	result, err := svc.Scan(input)
 	if err != nil {
-		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 500},
+		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 500}, nil
 	}
 
 	var products []Product
 	for _, item := range result.Items {
-		price, err := srtconv.Atoi(*item["price"].N)
+		price, err := strconv.Atoi(*item["price"].N)
 		if err != nil {
-			return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 500},
+			return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 500}, nil
 		}
 
 		products = append(products, Product{
-			ID: *item["id"].S,
-			Name: *item["name"].S,
-			Price, price,
+			ID:    *item["id"].S,
+			Name:  *item["name"].S,
+			Price: price,
 		})
 	}
 
 	body, err := json.Marshal(products)
-	if err != nil {if err != nil {
-		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 500},
+	if err != nil {
+		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 500}, nil
 	}
 
 	return events.APIGatewayProxyResponse{
 		StatusCode: 201,
-		Headers: map[string][string]{
+		Headers: map[string]string{
 			"Content-Type": "application/json",
 		},
 		Body: string(body),
 	}, nil
 }
 
-func main(){
+func main() {
 	lambda.Start(ListProduct)
 }

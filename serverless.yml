@@ -23,6 +23,17 @@ frameworkVersion: '3'
 provider:
   name: aws
   runtime: go1.x
+  stage: dev
+  region: us-east-1
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action: 
+            - "dynamodb:PutItem"
+            - "dynamodb:Scan"
+          Resource: 
+            - "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/Products"
 
 # you can overwrite defaults here
 #  stage: dev
@@ -56,18 +67,35 @@ package:
     - ./bin/**
 
 functions:
-  hello:
-    handler: bin/hello
+  insert:
+    handler: bin/InsertProduct
     events:
       - httpApi:
-          path: /hello
-          method: get
-  world:
-    handler: bin/world
+          path: /products
+          method: post
+  list:
+    handler: bin/ListProduct
     events:
       - httpApi:
-          path: /world
+          path: /products
           method: get
+
+resources:
+  Resources:
+    Products:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: Products
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
 #    Check the event documentation for details
